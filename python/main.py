@@ -8,10 +8,19 @@ pygame.font.init()
 window = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 pygame.display.set_caption("Sequence Memory")
 
-font = pygame.font.Font(None, INSTRUCTION_FONT_SIZE)
-button_font = pygame.font.Font(None, BUTTON_FONT_SIZE)
-feedback_font = pygame.font.Font(None, FEEDBACK_FONT_SIZE)
-card_font = pygame.font.Font(None, CARD_FONT_SIZE)
+# Initialize fonts with custom font
+try:
+    font = pygame.font.Font('shared/custom_font.ttf', INSTRUCTION_FONT_SIZE)
+    button_font = pygame.font.Font('shared/custom_font.ttf', BUTTON_FONT_SIZE)
+    feedback_font = pygame.font.Font('shared/custom_font.ttf', FEEDBACK_FONT_SIZE)
+    card_font = pygame.font.Font('shared/custom_font.ttf', CARD_FONT_SIZE)
+except:
+    # Fallback to system fonts if custom font is not found
+    print("Custom font not found, using system fonts")
+    font = pygame.font.Font(None, INSTRUCTION_FONT_SIZE)
+    button_font = pygame.font.Font(None, BUTTON_FONT_SIZE)
+    feedback_font = pygame.font.Font(None, FEEDBACK_FONT_SIZE)
+    card_font = pygame.font.Font(None, CARD_FONT_SIZE)
 
 game = Game(window, font, button_font, feedback_font, card_font)
 
