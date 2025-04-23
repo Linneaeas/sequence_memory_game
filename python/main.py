@@ -72,7 +72,7 @@ while running:
                     if game.check_sequence():
                         game.state = STATE_SUCCESS
                     else:
-                        game.wrong_message = WRONG_TEXT
+                        game.wrong_message = WRONG_TEXT1, WRONG_TEXT2
                         game.wrong_time = current_time
 
     pygame.display.update()

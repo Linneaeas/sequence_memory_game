@@ -84,31 +84,52 @@ class Game:
             image_name = self.guess_result_to_image[self.guess_result]
             if image_name in self.state_images:
                 image = self.state_images[image_name]
-                image_rect = image.get_rect(center=(CENTER_X, SEQUENCE_Y - 85))
+                image_rect = image.get_rect(center=(CAT_IMAGE_X, CAT_IMAGE_Y))
                 self.window.blit(image, image_rect)
         elif self.state in self.state_to_image:
             # Show normal state image
             image_name = self.state_to_image[self.state]
             if image_name in self.state_images:
                 image = self.state_images[image_name]
-                image_rect = image.get_rect(center=(CENTER_X, SEQUENCE_Y - 85))
+                image_rect = image.get_rect(center=(CAT_IMAGE_X, CAT_IMAGE_Y))
                 self.window.blit(image, image_rect)
 
         if self.state == STATE_SUCCESS:
-            # Draw success text in two parts
-            success_text1 = self.feedback_font.render(
-                SUCCESS_TEXT1, True, FEEDBACK_FONT_COLOR)
-            success_text2 = self.feedback_font.render(
-                SUCCESS_TEXT2, True, FEEDBACK_FONT_COLOR)
-            success_rect1 = success_text1.get_rect(
-                center=(CENTER_X, SUCCESS_TEXT_Y - 20))
-            success_rect2 = success_text2.get_rect(
-                center=(CENTER_X, SUCCESS_TEXT_Y + 20))
-            self.window.blit(success_text1, success_rect1)
-            self.window.blit(success_text2, success_rect2)
-
+            # Draw cards first
             self._draw_cards(self.sequence, SEQUENCE_Y, show_all=True)
             self._draw_restart_button()
+
+            # Draw success text in two parts (after cards)
+            success_text1 = self.feedback_font.render(
+                SUCCESS_TEXT1, True, SUCCESS_FONT_COLOR)
+            success_text2 = self.feedback_font.render(
+                SUCCESS_TEXT2, True, SUCCESS_FONT_COLOR)
+            success_rect1 = success_text1.get_rect(
+                center=(SUCCESS_TEXT1_X, SUCCESS_TEXT1_Y))
+            success_rect2 = success_text2.get_rect(
+                center=(SUCCESS_TEXT2_X, SUCCESS_TEXT2_Y))
+            
+            # Add padding around the text
+            bg_rect1 = pygame.Rect(
+                success_rect1.x - SUCCESS_PADDING,
+                success_rect1.y - SUCCESS_PADDING,
+                success_rect1.width + SUCCESS_PADDING * 2,
+                success_rect1.height + SUCCESS_PADDING * 2
+            )
+            bg_rect2 = pygame.Rect(
+                success_rect2.x - SUCCESS_PADDING,
+                success_rect2.y - SUCCESS_PADDING,
+                success_rect2.width + SUCCESS_PADDING * 2,
+                success_rect2.height + SUCCESS_PADDING * 2
+            )
+            
+            # Draw background rectangles
+            pygame.draw.rect(self.window, SUCCESS_BG_COLOR, bg_rect1)
+            pygame.draw.rect(self.window, SUCCESS_BG_COLOR, bg_rect2)
+            
+            # Draw text on top of backgrounds
+            self.window.blit(success_text1, success_rect1)
+            self.window.blit(success_text2, success_rect2)
             return
 
         current_sequence = {
@@ -141,10 +162,19 @@ class Game:
         instruction_text2 = self.font.render(
             instruction_texts[1], True, INSTRUCTION_FONT_COLOR)
         
+        # Calculate dynamic positions based on text width
+        cat_image = self.state_images[self.state_to_image[self.state]]
+        cat_width = cat_image.get_width()
+        
+        # Position first text to end at cat's left edge
         instruction_rect1 = instruction_text1.get_rect(
-            center=(INSTRUCTION_TEXT1_X, INSTRUCTION_TEXT1_Y))
+            right=CAT_IMAGE_X - cat_width//2 - 15,  # 15 pixels gap
+            centery=INSTRUCTION_TEXT1_Y)
+        
+        # Position second text to start at cat's right edge
         instruction_rect2 = instruction_text2.get_rect(
-            center=(INSTRUCTION_TEXT2_X, INSTRUCTION_TEXT2_Y))
+            left=CAT_IMAGE_X + cat_width//2 + 15,  # 15 pixels gap
+            centery=INSTRUCTION_TEXT2_Y)
         
         self.window.blit(instruction_text1, instruction_rect1)
         self.window.blit(instruction_text2, instruction_rect2)
@@ -152,13 +182,33 @@ class Game:
         if self.wrong_message:
             # Draw wrong message in two parts
             wrong_text1 = self.feedback_font.render(
-                WRONG_TEXT1, True, FEEDBACK_FONT_COLOR)
+                WRONG_TEXT1, True, WRONG_FONT_COLOR)
             wrong_text2 = self.feedback_font.render(
-                WRONG_TEXT2, True, FEEDBACK_FONT_COLOR)
+                WRONG_TEXT2, True, WRONG_FONT_COLOR)
             wrong_rect1 = wrong_text1.get_rect(
-                center=(CENTER_X, FEEDBACK_TEXT_Y - 20))
+                center=(WRONG_TEXT1_X, WRONG_TEXT1_Y))
             wrong_rect2 = wrong_text2.get_rect(
-                center=(CENTER_X, FEEDBACK_TEXT_Y + 20))
+                center=(WRONG_TEXT2_X, WRONG_TEXT2_Y))
+            
+            # Add padding around the text
+            bg_rect1 = pygame.Rect(
+                wrong_rect1.x - WRONG_PADDING,
+                wrong_rect1.y - WRONG_PADDING,
+                wrong_rect1.width + WRONG_PADDING * 2,
+                wrong_rect1.height + WRONG_PADDING * 2
+            )
+            bg_rect2 = pygame.Rect(
+                wrong_rect2.x - WRONG_PADDING,
+                wrong_rect2.y - WRONG_PADDING,
+                wrong_rect2.width + WRONG_PADDING * 2,
+                wrong_rect2.height + WRONG_PADDING * 2
+            )
+            
+            # Draw background rectangles
+            pygame.draw.rect(self.window, WRONG_BG_COLOR, bg_rect2)
+            pygame.draw.rect(self.window, WRONG_BG_COLOR, bg_rect1)
+            
+            # Draw text on top of backgrounds
             self.window.blit(wrong_text1, wrong_rect1)
             self.window.blit(wrong_text2, wrong_rect2)
 
@@ -191,7 +241,7 @@ class Game:
                 self.window.blit(number_text, number_rect)
 
     def _draw_guesses(self, sequence, y):
-        """Draw the player's guesses above the cards."""
+        """Draw the player's guesses below the cards."""
         total_width = (CARD_SIZE * SEQUENCE_LENGTH) + \
             (MARGIN * (SEQUENCE_LENGTH - 1))
         start_x = CENTER_X - total_width // 2
@@ -199,9 +249,10 @@ class Game:
         for i, number in enumerate(sequence):
             x = start_x + (i * (CARD_SIZE + MARGIN))
 
-            guess_text = self.font.render(str(number), True, CARD_FONT_COLOR)
+            # Render and draw the guess number
+            guess_text = self.font.render(str(number), True, GUESS_FONT_COLOR)
             guess_rect = guess_text.get_rect(
-                center=(x + CARD_SIZE//2, y + CARD_SIZE//2))
+                center=(x + CARD_SIZE//2, GUESS_NUMBERS_Y))
             self.window.blit(guess_text, guess_rect)
 
     def _draw_empty_slot(self, sequence, y):
